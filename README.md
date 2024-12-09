@@ -1,3 +1,4 @@
 ## UAV-MPC
-这是一个UAV MPC的示例代码。
-uav_startUp.m为主代码，其会调用uavNMPC.m来进行MPC的解算，uavDynamics.m为无人机动力学代码，costFunction.m为表征代价函数的代码。
+这是一个UAV MPC的matlab示例代码。
+采用无人机的12个状态量与4个输入量，来设计MPC控制器。其中uav_startUp为主代码，uavNMPC为MPC求解代码，uavDynamics为无人机建模代码，costFunction为代价函数代码。
+
