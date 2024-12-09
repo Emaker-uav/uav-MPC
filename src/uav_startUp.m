@@ -39,10 +39,10 @@ t = 0;
 
 
 maxPoints = 200; % 最大显示的点数
-numStates = 2; % 状态数量
-numFu = 1;
-rows = 2; % 子图行数
-cols = 1; % 子图列数
+numStates = 12; % 状态数量
+numFu = 4;
+rows = 4; % 子图行数
+cols = 3; % 子图列数
 timeData = cell(numStates, 1); % 每个状态的时间存储
 FutimeData = cell(numFu, 1);
 plotData = cell(numStates, 1); % 每个状态的值存储
@@ -68,7 +68,7 @@ for i = 1:numFu
 end
 while true  
     Fu  = uavNMPC(X_state,X_des,Q,R,N,dT_MPC);
-    derx = cartPoleDynamics(X_state, Fu);
+    derx = uavDynamics(X_state, Fu);
     X_state = X_state + 0.01*derx;
     pause(dT_MPC);
 

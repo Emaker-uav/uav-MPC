@@ -3,7 +3,7 @@ function J = costFunction(u,X_states,X_ref, Q, R, N,dt_MPC)
     X = zeros(size(X_states,1),N); 
     X(:,1) = X_states;                                   
 for k = 1 : N-1
-    dX = cartPoleDynamics(X(:, k), U(:, k));
+    dX = uavDynamics(X(:, k), U(:, k));
     X(:, k+1) = X(:, k) + dt_MPC*dX ;
 end
 J = 0; 
