@@ -1,0 +1,26 @@
+function dX = uavDynamics(X, f)
+global m l g Ixx Iyy Izz cT cM
+x = X(1);
+y = X(2);
+z = X(3);
+vx = X(4);
+vy = X(5);
+vz = X(6);              
+dx = vx;
+dy = vy;
+dz = vz;
+dvx = (T / M)*(cos(alpha)*sin(beta)*cos(gama)+sin(alpha)*sin(gama));
+
+dX = [dx;dy;dz; 
+      dvx; dvy; dvz;
+      dalpha; dbeta; dgama;
+      dp; dq; dr];
+%% 原来状态
+% x = X(1);
+% vx = X(2);
+% %% 现有输入f 求增量
+% dx = vx;
+% dvx = f(1);
+% dX = [dx;
+%       dvx];
+end
