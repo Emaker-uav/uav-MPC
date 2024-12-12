@@ -7,11 +7,11 @@ m = 1.7;
 g = 9.81;   
 u0 = zeros(20,1);
 %% cart-pole initial condition
-X_state = [0;0;0;
+X_state = [0.1;0.1;0.1;
            0;0;0]; 
-X_des = [0.1;0.2;0.5;
+X_des = [3;3;0.5;
          0;0;0;]; 
-Q = diag([800,800,800,10,10,10]);
+Q = diag([400,400,800,10,10,10]);
 R = diag([0.001,0.001,0.001,0.001]);
 N = 5; 
 dT_MPC = 0.01; 
@@ -56,9 +56,33 @@ end
 
 
 
+% 创建 3D 图形窗口
+trackPoints = []; % 实际轨迹点
+figure;
+hold on;
+grid on;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('3D Trajectory Tracking');
+view(3); % 设置3D视角
+axis equal;
 
+% 绘制静态期望点
+plot3(X_state(1), X_state(2), X_state(3), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'g'); % 期望位置点
+plot3(X_des(1), X_des(2), X_des(3), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r'); % 期望位置点
 
+% 创建动态轨迹曲线
+hTrack = plot3(nan, nan, nan, 'b-', 'LineWidth', 1.5); % 实际轨迹曲线
 
+% 定义无人机机臂长度
+arm_length = 0.3; % 每个机臂的长度
+
+% 四个机臂在局部坐标系的端点
+arms = arm_length * [
+    1,  1, 0;  % 第一根机臂 (X形右上)
+   -1, -1, 0;  % 第二根机臂 (X形左下)
+    1, -1, 0;  % 第三根机臂 (X形右下)
+   -1,  1, 0   % 第四根机臂 (X形左上)
+]';
 
 
 while true  
@@ -88,7 +112,7 @@ while true
         % 更新子图
         set(hPlots(i), 'XData', timeData{i}, 'YData', plotData{i});
         set(refPlots(i), 'XData', timeData{i}, 'YData', refData{i});
-        set(hAxes(i), 'YLim', [-0.5, 0.5]); % Y 轴范围（根据需要调整）
+        set(hAxes(i), 'YLim', [-0.5, 1]); % Y 轴范围（根据需要调整）
     end
     for i = 1:numFu
         % 更新数据
@@ -108,6 +132,51 @@ while true
         % 更新子图
         set(fPlots(i), 'XData', time2Data{i}, 'YData', plot2Data{i});
     end
+
+    % 提取当前位置
+    currentPoint = X_state(1:3)'; % 当前 [x, y, z] 位置
+    trackPoints = [trackPoints; currentPoint]; % 添加到轨迹点集合
+
+    % 更新轨迹曲线
+    set(hTrack, 'XData', trackPoints(:, 1), 'YData', trackPoints(:, 2), 'ZData', trackPoints(:, 3));
+
+    % 动态调整坐标轴范围（根据需要可扩展为动态调整）
+    xlim([-1, 1]); ylim([-1, 1]); zlim([0, 1]);
+
+
+   % 提取欧拉角（弧度制）
+    alpha = Fu(1)*pi/180; % 滚转角 (roll)
+    beta = Fu(2)*pi/180;  % 俯仰角 (pitch)
+    gamma = Fu(3)*pi/180; % 偏航角 (yaw)
+
+    % 计算无人机的旋转矩阵 (XYZ 顺序)
+    R_body = eul2rotm([alpha, beta, gamma], 'XYZ');
+
+    % 转换机臂端点到世界坐标系
+    arms_world = R_body * arms + X_state(1:3);
+
+    % 绘制无人机框架
+    % 清除之前的框架
+    if exist('hArms', 'var')
+        delete(hArms);
+    end
+    hArms = plot3(...
+        [arms_world(1, [1, 2]), nan, arms_world(1, [3, 4])], ...
+        [arms_world(2, [1, 2]), nan, arms_world(2, [3, 4])], ...
+        [arms_world(3, [1, 2]), nan, arms_world(3, [3, 4])], ...
+        'k-', 'LineWidth', 2); % 无人机 X 型
+
+    % 更新轨迹曲线
+%     currentPoint = X_state(1:3)';
+%     trackPoints = [trackPoints; currentPoint];
+    set(hTrack, 'XData', trackPoints(:, 1), 'YData', trackPoints(:, 2), 'ZData', trackPoints(:, 3));
+
+    % 动态调整坐标轴范围（根据需要调整）
+    xlim([-3, 3] + X_state(1));
+    ylim([-3, 3] + X_state(2));
+    zlim([0, 2]);
+
+
     % 刷新图像
     drawnow;
 end
